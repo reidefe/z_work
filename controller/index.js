@@ -78,15 +78,18 @@ exports.getsizedfiles = (req, res, next) => {
         page_number = req.query.page_number
         if(req.params == '' || req.params == 'undefined'){                
             page_number = 1
-            Cont.findAll({ limit:10})
+            Cont.findAll({ limit:1}) 
+            then(({count, rows}) =>{
+                return res.json(rows)
+        })
         }
         else((req,res) =>{
             list_size = req.query.list_size
             list_sizes = req.params
             page_number = req.query.page_number
             Cont.findAll({limit : list_sizes})
-            .then((lists) =>{
-                return res.json(lists)
+            .then(({count, rows}) =>{
+                return res.json(rows)
         })
         })      
 
@@ -100,7 +103,7 @@ exports.getsizedfiles = (req, res, next) => {
 
 exports.getallfiles = (req,res,next) =>{
     try{
-        Cont.findAndCountAll({}) .then(count=>{
+        Cont.findAndCountAll({}) .then(({count, rows})=>{
             console.log(count)
             res.json(count)
         }) 
