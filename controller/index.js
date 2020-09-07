@@ -11,6 +11,7 @@ app.use(cookieParser())
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({extended:false}));
 const cors = require('cors')
+const { count } = require('console')
 const refreshTokenSecret = 'nosayaba123';
 const refreshTokens = [];
 
@@ -72,37 +73,55 @@ exports.uploadFiles = async (req,res) => {
 
 //get uploaded files based on query options
 exports.getsizedfiles = (req, res, next) => {
-    list_size = req.query.list_size
-    page_number = req.query.page_number
-    if(req.params == '' || req.params == 'undefined'){                
-        page_number = 1
-        Cont.findAll({ limit:10})
-    }
-    else((req,res) =>{
+    try{
         list_size = req.query.list_size
-        list_sizes = req.params
         page_number = req.query.page_number
-        Cont.findAll({limit : list_sizes})
-        .then((lists) =>{
-            return res.json(lists)
-    }).catch(error =>{
+        if(req.params == '' || req.params == 'undefined'){                
+            page_number = 1
+            Cont.findAll({ limit:10})
+        }
+        else((req,res) =>{
+            list_size = req.query.list_size
+            list_sizes = req.params
+            page_number = req.query.page_number
+            Cont.findAll({limit : list_sizes})
+            .then((lists) =>{
+                return res.json(lists)
+        })
+        })      
+
+    }catch(error){
         console.log(error)
         return res.json('Error when trying to return upload file or not enough files', error) 
-    })
-    })
-
-
+    }
+  
 }
+
+
+exports.getallfiles = (req,res,next) =>{
+    try{
+        Cont.findAndCountAll({}) .then(count=>{
+            console.log(count)
+            res.json(count)
+        }) 
+    } 
+    catch(e){
+        console.log(e)
+        res.json({'e':e})
+    }
+}
+    
+    
 
 //delete files from params input
 exports.deletefilesbyid = (req,res) =>{
     //id = req.params.id
     Cont.destroy({
         where: {
-            id:req.params.id
+            id:req.params
         }
     }) .then((deletedfile) =>{
-        console.log('file deleted  ')
+        console.log('file deleted')
         res.json('file deleted')
     }).catch(error =>{
         console.log(error)
@@ -235,7 +254,7 @@ exports.newtoken = (req,res,next) =>{
             return res.sendStatus(403);
         }
 
-        const accessToken = jwt.sign({ username: user.username, role: user.role }, accessTokenSecret, { expiresIn: '20m' });
+        const accessToken = jwt.sign({ name: user.username, email: user.email }, accessTokenSecret, { expiresIn: '20m' });
 
         res.json({
             accessToken
@@ -250,5 +269,5 @@ exports.newtoken = (req,res,next) =>{
 exports.logout = (req, res) => {
     const { token } = req.body;
     refreshTokens = refreshTokens.filter(token => t !== token);
-    res.send("Logout successful");
+    res.send("Logout successful")
 }
